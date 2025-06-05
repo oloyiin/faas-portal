@@ -16,6 +16,7 @@ spec:
       containers:
       - name: faas-frontend
         image: localhost:32000/faas-frontend
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
 ---
@@ -24,10 +25,11 @@ kind: Service
 metadata:
   name: faas-frontend-service
 spec:
+  type: NodePort          # passe en NodePort
   selector:
     app: faas-frontend
   ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 80
-  type: ClusterIP
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 30080    # port fixe choisi (30000-32767)
