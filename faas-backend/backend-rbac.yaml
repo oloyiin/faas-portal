@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: faas-backend
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: faas-backend-role
+  namespace: default
+rules:
+- apiGroups: ["serving.knative.dev"]
+  resources: ["services"]
+  verbs: ["get", "list", "delete"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: faas-backend-rolebinding
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: faas-backend
+  namespace: default
+roleRef:
+  kind: Role
+  name: faas-backend-role
+  apiGroup: rbac.authorization.k8s.io

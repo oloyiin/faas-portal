@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-api-service
+spec:
+  selector:
+    app: backend-api
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 80         # Le port que les autres apps utiliseront
+      targetPort: 8000 # Le port sur lequel ton backend écoute
+      nodePort: 30081  # Port fixe choisi (30000-32767)
