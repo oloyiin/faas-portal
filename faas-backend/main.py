@@ -13,6 +13,7 @@ import uvicorn
 import requests
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -63,7 +64,6 @@ async def startup_event():
         verify_certificates()
     except FileNotFoundError as e:
         logger.error(f"Erreur de configuration : {e}")
-        # Vous pouvez choisir d'arrêter l'application ou de continuer avec un avertissement
 
 @app.get("/")
 def read_root():
@@ -84,9 +84,9 @@ def get_fonctions():
         resp = requests.get(
             f"{API_SERVER}/apis/serving.knative.dev/v1/namespaces/default/services",
             cert=CERT,
-            verify=CACERT,
+            verify=False,  # CHANGÉ ICI
             headers=HEADERS,
-            timeout=30  # Ajout d'un timeout
+            timeout=30
         )
         if resp.status_code != 200:
             raise HTTPException(status_code=resp.status_code, detail=resp.text)
@@ -101,6 +101,32 @@ def get_fonctions():
         logger.error(f"Erreur lors de la récupération des fonctions : {e}")
         return {"message": "Erreur lors de l'appel à l'API", "erreur": str(e), "fonctions": []}
 
+# Récupérer une fonction spécifique
+@app.get("/fonctions/{nom}")
+def get_fonction(nom: str):
+    try:
+        resp = requests.get(
+            f"{API_SERVER}/apis/serving.knative.dev/v1/namespaces/default/services/{nom}",
+            cert=CERT,
+            verify=False,  # CHANGÉ ICI
+            headers=HEADERS,
+            timeout=30
+        )
+        if resp.status_code == 404:
+            return {"message": "Fonction non trouvée", "nom": nom}
+        elif resp.status_code != 200:
+            raise HTTPException(status_code=resp.status_code, detail=resp.text)
+
+        service = resp.json()
+        url = service["status"].get("url")
+        return {"nom": nom, "url": url}
+
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Erreur de connexion : {e}")
+        raise HTTPException(status_code=503, detail="Erreur de connexion au serveur Kubernetes")
+    except Exception as e:
+        logger.error(f"Erreur : {e}")
+        return {"message": "Erreur API", "erreur": str(e), "nom": nom}
 
 # Récupérer l'état d'une fonction
 @app.get("/fonctions/{nom}/etat")
@@ -109,7 +135,7 @@ def get_etat_fonction(nom: str):
         resp = requests.get(
             f"{API_SERVER}/apis/serving.knative.dev/v1/namespaces/default/services/{nom}",
             cert=CERT,
-            verify=CACERT,
+            verify=False,  # CHANGÉ ICI
             headers=HEADERS,
             timeout=30
         )
@@ -139,7 +165,7 @@ def patch_fonction(nom: str, patch_data: dict = Body(...)):
         resp = requests.patch(
             f"{API_SERVER}/apis/serving.knative.dev/v1/namespaces/default/services/{nom}",
             cert=CERT,
-            verify=CACERT,
+            verify=False,  # CHANGÉ ICI
             headers={"Content-Type": "application/merge-patch+json"},
             json=patch_data,
             timeout=30
@@ -166,7 +192,7 @@ def delete_fonction(nom: str):
         resp = requests.delete(
             f"{API_SERVER}/apis/serving.knative.dev/v1/namespaces/default/services/{nom}",
             cert=CERT,
-            verify=CACERT,
+            verify=False,  # CHANGÉ ICI
             headers=HEADERS,
             timeout=30
         )
