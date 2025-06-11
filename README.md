@@ -26,6 +26,9 @@ sudo snap install microk8s --classic
 sudo usermod -a -G microk8s ubuntu
 sudo chown -R ubuntu ~/.kube
 newgrp microk8s
+mkdir -p ~/.kube
+microk8s config > ~/.kube/config
+chmod 600 ~/.kube/config
 microk8s start
 
 ## Montage de l'emplacement du registry et lien
