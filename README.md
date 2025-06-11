@@ -55,3 +55,18 @@ source ~/.bashrc
 
 A partir d'ici, pour tester l'installation de Knative :
 microk8s kn-func version 
+
+##Regler les problemes de droits avec knative###
+sudo chown -R $(id -u):$(id -g) /mnt/my-microk8s/common/run
+
+Pour tester la creation d'une fonction basique avec KNATIVE : 
+microk8s kn-func create hello -l node
+cd ~/hello
+microk8s kn-func depkoy --image localhost:32000/hello:latest --build --builder s2i
+
+Modifier le /etc/hosts
+sudo echo "134.214.202.225 hello.default.134.214.202.225.sslip.io" >> /etc/hosts
+curl http://hello.default.134.214.202.225.sslip.io
+
+
+
