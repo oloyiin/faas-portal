@@ -47,7 +47,7 @@ microk8s kubectl patch configmap -n knative-serving config-domain -p '{"data": {
 
 ## Installation d'un utilitaire de container (ici podman)
 sudo apt install podman
-sudo apt install curl (optionnel)
+sudo apt install curl
 
 ## Ajout au PATH les plugins de Knative
 echo 'export PATH=$PATH:/var/snap/microk8s/common/plugins' >> ~/.bashrc
