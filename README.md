@@ -58,7 +58,7 @@ microk8s kn-func version
 
 ##Regler les problemes de droits avec knative###
 sudo chown -R $(id -u):$(id -g) /mnt/my-microk8s/common/run
-
+source ~/.bashrc
 Pour tester la creation d'une fonction basique avec KNATIVE : 
 cd ~
 microk8s kn-func create hello -l node
