@@ -36,6 +36,10 @@ mkdir /mnt/my-microk8s/registry
 cd /var/lib
 sudo ln -s /mnt/my-microk8s/registry registry
 
+mkdir /mnt/my-microk8s/tmp
+cd /var
+sudo ln -s /mnt/my-microk8s/tmp tmp
+
 ## Installation du registry
 microk8s enable registry
 
