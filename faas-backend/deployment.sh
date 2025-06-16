@@ -7,7 +7,7 @@ TAR_FILE="backend.tar"
 DEPLOYMENT_YAML="backend-deploy.yaml"
 
 # Adresse IP et port pour tester l'API (à adapter)
-API_HOST="172.16.50.102"
+API_HOST="134.214.202.225"
 API_PORT="30081"
 API_URL="http://${API_HOST}:${API_PORT}/"
 
@@ -37,7 +37,7 @@ microk8s kubectl rollout status deployment backend-api --timeout=300s
 
 echo "✅ Déploiement réussi!"
 
-echo "Attente que le pod soit prêt..."
+echo "Attete que le pod soit prêt..."
 microk8s kubectl wait --for=condition=ready pod -l app=backend-api --timeout=60s
 
 echo "=== Test de l'API ==="

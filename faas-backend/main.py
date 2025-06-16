@@ -25,7 +25,8 @@ BASE_DIR = Path(__file__).parent
 CERTS_DIR = BASE_DIR / "certs"
 
 # Charger la variable d'environnement API_SERVER
-API_SERVER = os.getenv("API_SERVER", "https://172.16.50.100:16443")
+#API_SERVER = os.getenv("API_SERVER", "https://172.16.50.100:16443")
+API_SERVER = "https://134.214.202.225:16443"
 
 # Chemins des certificats client et CA
 CERT = (str(CERTS_DIR / "client.crt"), str(CERTS_DIR / "client.key"))
@@ -88,7 +89,7 @@ def get_fonctions():
         resp = requests.get(
             f"{API_SERVER}/apis/serving.knative.dev/v1/namespaces/default/services",
             cert=CERT,
-            verify=False,  # Désactive la vérification SSL (à sécuriser en prod)
+            verify=CACERT,  # Désactive la vérification SSL (à sécuriser en prod)
             headers=HEADERS,
             timeout=30
         )
@@ -110,7 +111,7 @@ def get_fonction(nom: str):
         resp = requests.get(
             f"{API_SERVER}/apis/serving.knative.dev/v1/namespaces/default/services/{nom}",
             cert=CERT,
-            verify=False,
+            verify=CACERT,
             headers=HEADERS,
             timeout=30
         )
@@ -136,7 +137,7 @@ def get_etat_fonction(nom: str):
         resp = requests.get(
             f"{API_SERVER}/apis/serving.knative.dev/v1/namespaces/default/services/{nom}",
             cert=CERT,
-            verify=False,
+            verify=CACERT,
             headers=HEADERS,
             timeout=30
         )
@@ -165,7 +166,7 @@ def patch_fonction(nom: str, patch_data: dict = Body(...)):
         resp = requests.patch(
             f"{API_SERVER}/apis/serving.knative.dev/v1/namespaces/default/services/{nom}",
             cert=CERT,
-            verify=False,
+            verify=CACERT,
             headers={"Content-Type": "application/merge-patch+json"},
             json=patch_data,
             timeout=30
@@ -191,7 +192,7 @@ def delete_fonction(nom: str):
         resp = requests.delete(
             f"{API_SERVER}/apis/serving.knative.dev/v1/namespaces/default/services/{nom}",
             cert=CERT,
-            verify=False,
+            verify=CACERT,
             headers=HEADERS,
             timeout=30
         )
