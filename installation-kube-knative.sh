@@ -62,15 +62,3 @@ echo "134.214.202.225 hello.default.134.214.202.225.sslip.io" | sudo tee -a /etc
 echo "=== [13] Test HTTP de la fonction ==="
 curl http://hello.default.134.214.202.225.sslip.io || echo "⚠️ L'appel HTTP a échoué (la fonction n'est peut-être pas encore prête)"
 
-echo "=== [14] Déploiement du backend FaaS ==="
-chmod +x backend/deployment.sh
-./backend/deployment.sh
-
-echo "=== [15] Déploiement du frontend FaaS ==="
-chmod +x frontend/redeploy-frontend.sh
-./frontend/redeploy-frontend.sh
-
-echo "=== [16] Déploiement de l'Ingress ==="
-microk8s kubectl apply -f ingress/faas-ingress.yaml
-
-echo "=== ✅ FaaS Portal déployé ! Accédez à : http://faas.local (ou IP .sslip.io selon Ingress) ==="
