@@ -4,7 +4,14 @@ metadata:
   name: faas-ingress
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
+    # Exemple d’annotations supplémentaires :
+    # nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    # nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
 spec:
+  tls:
+  - hosts:
+    - faas.local
+    secretName: faas-tls-secret
   rules:
   - host: faas.local
     http:
@@ -20,6 +27,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: faas-frontend-service  # CORRECTION ICI
+            name: faas-frontend-service
             port:
               number: 80
