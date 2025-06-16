@@ -131,7 +131,7 @@ apiUrl
     setLoading(true)
     try {
       // Utiliser l'API de création sur le master
-      const res = await fetch(`${apiUrl}/fonctions`, {
+      const res = await fetch(`${apiUrl}/api/fonctions`, {
         method: 'POST',
         body: formData,
       })

@@ -14,17 +14,18 @@ spec:
       labels:
         app: backend-api
     spec:
+      serviceAccountName: faas-backend   # <-- Ajouté ici
       containers:
       - name: backend-api
         image: localhost/faas-backend:v1
-        imagePullPolicy: Never
+        imagePullPolicy: Never  # À changer en IfNotPresent ou Always selon ton registre
         ports:
         - containerPort: 8000
-        # Ajouter des variables d'environnement si nécessaire
         env:
+        - name: API_SERVER
+          value: "https://134.214.202.225:16443"  # Ajout du protocole https://
         - name: PYTHONUNBUFFERED
           value: "1"
-        # Ajouter des limites de ressources
         resources:
           requests:
             memory: "256Mi"
@@ -32,19 +33,28 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "500m"
-        # Ajouter des health checks
         livenessProbe:
           httpGet:
             path: /
             port: 8000
           initialDelaySeconds: 30
           periodSeconds: 10
+          failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /
             port: 8000
           initialDelaySeconds: 5
           periodSeconds: 5
+          failureThreshold: 3
+        # volumeMounts:
+        # - name: certs-volume
+        #   mountPath: /app/certs
+        #   readOnly: true
+      # volumes:
+      # - name: certs-volume
+      #   secret:
+      #     secretName: faas-backend-certs
 
 ---
 apiVersion: v1

@@ -13,9 +13,6 @@ rules:
 - apiGroups: ["serving.knative.dev"]
   resources: ["services"]
   verbs: ["get", "list", "delete"]
-- apiGroups: [""]
-  resources: ["configmaps"]
-  verbs: ["delete"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
