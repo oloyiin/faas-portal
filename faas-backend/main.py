@@ -48,11 +48,11 @@ HEADERS = {"Content-Type": "application/json"}
 # ──────────────────────────────────────────────
 # VÉRIFICATION DES CERTIFICATS
 # ──────────────────────────────────────────────
-
+"""
 def verify_certificates():
-    """
-    Vérifie que tous les certificats nécessaires sont présents dans le dossier certs/.
-    """
+    
+    #Vérifie que tous les certificats nécessaires sont présents dans le dossier certs/.
+    
     required = ["client.crt", "client.key", "cert.crt"]
     missing = [str(CERTS_DIR / c) for c in required if not (CERTS_DIR / c).exists()]
     if missing:
@@ -65,6 +65,66 @@ def verify_certificates():
         missing = [str(CERTS_DIR / c) for c in required if not (CERTS_DIR / c).exists()]
         if missing :
             raise FileNotFoundError(f"Certificats manquants : {missing}")
+"""
+async def execute_shell_command(command: str, cwd: Optional[str] = None) -> dict:
+    """
+    Exécute une commande shell (string) via bash de manière asynchrone.
+    Utile pour les commandes complexes avec pipes.
+    """
+    try:
+        proc = await asyncio.create_subprocess_shell(
+            command,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            cwd=cwd
+        )
+        stdout, stderr = await proc.communicate()
+        return {
+            "success": proc.returncode == 0,
+            "stdout": stdout.decode(),
+            "stderr": stderr.decode()
+        }
+    except Exception as e:
+        return {"success": False, "stdout": "", "stderr": str(e)}
+
+
+async def retrieve_certificates():
+    """
+    Tente de récupérer les certificats Kubernetes depuis la config microk8s
+    et de les écrire dans le dossier certs/.
+    """
+    commands = {
+        "client.crt": "microk8s config view --raw | grep 'client-certificate-data:' | awk '{print $2}' | base64 -d > client.crt",
+        "client.key": "microk8s config view --raw | grep 'client-key-data:' | awk '{print $2}' | base64 -d > client.key",
+        "cert.crt": "microk8s config view --raw | grep 'certificate-authority-data:' | awk '{print $2}' | base64 -d > cert.crt",
+    }
+
+    for filename, cmd in commands.items():
+        result = await execute_shell_command(cmd, cwd=str(CERTS_DIR))
+        if not result["success"]:
+            logger.error(f"Erreur récupération {filename} : {result['stderr']}")
+            raise FileNotFoundError(f"Impossible de récupérer {filename} : {result['stderr']}")
+        else:
+            logger.info(f"Certificat {filename} récupéré avec succès.")
+
+
+async def verify_certificates():
+    """
+    Vérifie que tous les certificats nécessaires sont présents dans le dossier certs/.
+    Si manquants, tente de les récupérer automatiquement.
+    """
+    required = ["client.crt", "client.key", "cert.crt"]
+    missing = [str(CERTS_DIR / c) for c in required if not (CERTS_DIR / c).exists()]
+    if missing:
+        logger.warning(f"Certificats manquants : {missing}, tentative de récupération...")
+        await retrieve_certificates()
+        # Re-vérification après tentative
+        missing_after = [str(CERTS_DIR / c) for c in required if not (CERTS_DIR / c).exists()]
+        if missing_after:
+            raise FileNotFoundError(f"Certificats toujours manquants après récupération : {missing_after}")
+        logger.info("Tous les certificats sont présents.")
+    else:
+        logger.info("Tous les certificats sont présents.")
 
 
 # ──────────────────────────────────────────────
@@ -114,10 +174,10 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     """
-    Vérification des certificats au lancement de l’API.
+    Vérification asynchrone des certificats au lancement de l’API.
     """
     try:
-        verify_certificates()
+        await verify_certificates()
     except FileNotFoundError as e:
         logger.error(f"Erreur de certificat : {e}")
 

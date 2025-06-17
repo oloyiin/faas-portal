@@ -2,19 +2,19 @@
 import React, { useState, useEffect } from 'react'
 import { Upload, Trash2, ExternalLink, RefreshCw } from 'lucide-react'
 
-const versionsByLangage = {
-  python: ['3.11', '3.10', '3.9', '3.8'],
-  nodejs: ['20', '18', '16', '14'],
-  go: ['1.20', '1.19', '1.18'],
-  ruby: ['3.2', '3.1', '3.0'],
-  java: ['17', '11', '8'],
-}
+const supportedLanguages = [
+  'python',
+  'nodejs',
+  'go',
+  'rust',
+  'springboot',
+  'typescript',
+]
 
 export default function App() {
   const [functions, setFunctions] = useState([])
   const [nom, setNom] = useState('')
   const [langage, setLangage] = useState('python')
-  const [version, setVersion] = useState('3.9')
   const [code, setCode] = useState(null)
 
   const [loading, setLoading] = useState(false)
@@ -22,34 +22,34 @@ export default function App() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  // API pour lire les fonctions (votre backend actuel)
-  // API pour créer les fonctions (API Node.js sur le master)
-  //const apiUrl = process.env.REACT_APP_API_URL || '/api'
   const apiUrl = "http://134.214.202.225:8000"
+
   const fetchFunctions = async () => {
+    setError('')
     try {
-      const res = await fetch(`${apiUrl}/fonctions/creer-et-deployer`, { method: 'POST', body: formData })
+      const res = await fetch(`${apiUrl}/fonctions`, { method: 'GET' })
+      if (!res.ok) {
+        const errText = await res.text()
+        throw new Error(errText || 'Erreur lors de la récupération des fonctions.')
+      }
       const data = await res.json()
-      
-      // Si c'est un tableau de strings, récupérer les détails de chaque fonction
+
       if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'string') {
         const functionsWithDetails = await Promise.all(
           data.map(async (name) => {
             try {
-              // Récupérer les détails de chaque fonction (avec l'URL)
               const detailRes = await fetch(`${apiUrl}/fonctions/${name}`)
               const detail = await detailRes.json()
-              
-              // Récupérer l'état de la fonction
+
               const stateRes = await fetch(`${apiUrl}/fonctions/${name}/etat`)
               const state = await stateRes.json()
-              
+
               return {
                 nom: name,
-                langage: 'unknown', // Pas disponible dans Knative
-                version: 'unknown', // Pas disponible dans Knative
-                url: detail.url || '', // URL vient du backend Knative
-                ready: state.etat || 'Unknown'
+                langage: 'unknown',
+                version: 'unknown',
+                url: detail.url || '',
+                ready: state.etat || 'Unknown',
               }
             } catch (err) {
               console.error(`Erreur pour la fonction ${name}:`, err)
@@ -57,8 +57,8 @@ export default function App() {
                 nom: name,
                 langage: 'unknown',
                 version: 'unknown',
-                url: '', // Pas d'URL en cas d'erreur
-                ready: 'Unknown'
+                url: '',
+                ready: 'Unknown',
               }
             }
           })
@@ -78,7 +78,7 @@ export default function App() {
       return
     }
 
-    setLoadingDelete(prev => ({ ...prev, [functionName]: true }))
+    setLoadingDelete((prev) => ({ ...prev, [functionName]: true }))
     setError('')
     setSuccess('')
 
@@ -93,16 +93,14 @@ export default function App() {
       }
 
       setSuccess(`Fonction "${functionName}" supprimée avec succès !`)
-      
-      // Rafraîchir la liste des fonctions
+
       setTimeout(() => {
         fetchFunctions()
       }, 1000)
-      
     } catch (err) {
       setError(`Erreur lors de la suppression: ${err.message}`)
     } finally {
-      setLoadingDelete(prev => ({ ...prev, [functionName]: false }))
+      setLoadingDelete((prev) => ({ ...prev, [functionName]: false }))
     }
   }
 
@@ -110,13 +108,10 @@ export default function App() {
     fetchFunctions()
   }, [])
 
-  useEffect(() => {
-    setVersion(versionsByLangage[langage][0])
-  }, [langage])
-
   const handleSubmit = async () => {
     setError('')
     setSuccess('')
+
     if (!nom || !code) {
       setError('Veuillez renseigner un nom et sélectionner un fichier.')
       return
@@ -125,33 +120,30 @@ export default function App() {
     const formData = new FormData()
     formData.append('nom', nom)
     formData.append('langage', langage)
-    formData.append('version', version)
-    formData.append('fichier', code) // fichier => nom attendu par FastAPI
+    formData.append('fichier', code)
+    formData.append('image_registry', 'localhost:32000')
+    formData.append('builder', 's2i')
 
-  // apiUrl
     setLoading(true)
     try {
-      // Utiliser l'API de création sur le master
-      const res = await fetch(`${apiUrl}/fonctions`, {
+      const res = await fetch(`${apiUrl}/fonctions/creer-et-deployer`, {
         method: 'POST',
         body: formData,
       })
 
-      if (!res.ok) { // ✅ Correction de la syntaxe ici
+      if (!res.ok) {
         const errText = await res.text()
-        throw new Error(errText || 'Erreur lors de la création.')
+        throw new Error(errText || 'Erreur lors de la création et du déploiement.')
       }
 
       const result = await res.json()
-      setSuccess(`Fonction '${nom}' créée avec succès !`)
+      setSuccess(`Fonction '${nom}' créée et déployée avec succès !`)
       setNom('')
       setCode(null)
-      
-      // Rafraîchir la liste des fonctions après création
+
       setTimeout(() => {
         fetchFunctions()
       }, 2000)
-      
     } catch (err) {
       setError(`Erreur: ${err.message}`)
     } finally {
@@ -177,7 +169,7 @@ export default function App() {
       case 'False':
         return '❌ Non prêt'
       default:
-        return '❓ Inconnu'
+        return '❓ *Inconnu'
     }
   }
 
@@ -187,7 +179,6 @@ export default function App() {
         FaaS Portal
       </h1>
 
-      {/* Section d'information sur les APIs */}
       <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
         <div className="flex justify-between items-center">
           <div>
@@ -195,8 +186,7 @@ export default function App() {
               Configuration API
             </h2>
             <p className="text-xs text-blue-600">
-              📖 Lecture: {apiUrl} | 
-              ✏️ Création: {apiUrl}
+              📖 Lecture et création: {apiUrl} 
             </p>
           </div>
           <button
@@ -209,7 +199,6 @@ export default function App() {
         </div>
       </div>
 
-      {/* Messages globaux */}
       {error && (
         <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded">
           {error}
@@ -221,12 +210,9 @@ export default function App() {
         </div>
       )}
 
-      {/* Liste des fonctions */}
       <section className="mb-8">
         {functions.length === 0 ? (
-          <p className="text-center text-gray-500">
-            Aucune fonction disponible
-          </p>
+          <p className="text-center text-gray-500">Aucune fonction disponible</p>
         ) : (
           <div>
             <h2 className="text-2xl font-bold mb-4 text-gray-800">
@@ -234,36 +220,33 @@ export default function App() {
             </h2>
             <div className="grid gap-4">
               {functions.map((f, i) => (
-                <div 
-                  key={i} 
+                <div
+                  key={i}
                   className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-lg text-gray-900">
-                          {f.nom}
-                        </h3>
-                        <span 
-                          className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(f.ready)}`}
+                        <h3 className="font-semibold text-lg text-gray-900">{f.nom}</h3>
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(
+                            f.ready
+                          )}`}
                         >
                           {getStatusText(f.ready)}
                         </span>
                       </div>
-                      
+
                       <p className="text-sm text-gray-500 mb-2">
-                        {f.langage !== 'unknown' 
-                          ? `${f.langage} ${f.version}` 
-                          : 'Langage non spécifié'
-                        }
+                        Langage non spécifié
                       </p>
-                      
+
                       {f.url && (
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-gray-500">URL:</span>
-                          <a 
-                            href={f.url} 
-                            target="_blank" 
+                          <a
+                            href={f.url}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 break-all"
                           >
@@ -273,7 +256,7 @@ export default function App() {
                         </div>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center gap-2 ml-4">
                       <button
                         onClick={() => handleDelete(f.nom)}
@@ -296,13 +279,12 @@ export default function App() {
         )}
       </section>
 
-      {/* Formulaire de création */}
       <section>
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-bold mb-4 text-gray-800">
-            Créer une nouvelle fonction
+            Créer et déployer une nouvelle fonction
           </h2>
-          
+
           <input
             type="text"
             placeholder="Nom de la fonction"
@@ -310,39 +292,26 @@ export default function App() {
             onChange={(e) => setNom(e.target.value)}
             className="w-full mb-4 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <select
-              value={langage}
-              onChange={(e) => setLangage(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {Object.keys(versionsByLangage).map((lang) => (
-                <option key={lang} value={lang}>
-                  {lang}
-                </option>
-              ))}
-            </select>
-            <select
-              value={version}
-              onChange={(e) => setVersion(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {versionsByLangage[langage].map((v) => (
-                <option key={v} value={v}>
-                  {v}
-                </option>
-              ))}
-            </select>
-          </div>
-          
+
+          <select
+            value={langage}
+            onChange={(e) => setLangage(e.target.value)}
+            className="mb-4 w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {supportedLanguages.map((lang) => (
+              <option key={lang} value={lang}>
+                {lang}
+              </option>
+            ))}
+          </select>
+
           <input
             type="file"
-            accept=".py,.js,.go,.rb,.java"
+            accept=".py,.js,.go,.rs,.java,.ts"
             onChange={(e) => setCode(e.target.files[0])}
             className="mb-4 w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          
+
           <button
             onClick={handleSubmit}
             disabled={loading}
@@ -352,10 +321,10 @@ export default function App() {
                 : 'bg-blue-600 hover:bg-blue-700 text-white'
             }`}
           >
-            <Upload className="w-5 h-5" /> 
-            {loading ? 'Création en cours...' : 'Créer la fonction'}
+            <Upload className="w-5 h-5" />
+            {loading ? 'Création & déploiement en cours...' : 'Créer et déployer'}
           </button>
-          
+
           {loading && (
             <p className="text-sm text-gray-600 mt-2 text-center">
               ⏳ Déploiement de la fonction sur le cluster...
