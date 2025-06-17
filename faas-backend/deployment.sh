@@ -35,7 +35,7 @@ fi
 echo "=== Attente du déploiement ==="
 microk8s kubectl rollout status deployment backend-api --timeout=300s
 
-echo "✅ Déploiement réussi!"
+echo "V Déploiement réussi!"
 
 echo "Attete que le pod soit prêt..."
 microk8s kubectl wait --for=condition=ready pod -l app=backend-api --timeout=60s
@@ -44,10 +44,10 @@ echo "=== Test de l'API ==="
 sleep 5  # Petit délai pour que l'API démarre
 
 if curl -s "$API_URL" >/dev/null; then
-    echo "🌐 API accessible sur: $API_URL"
-    echo "✅ Test API réussi!"
+    echo " API accessible sur: $API_URL"
+    echo "v Test API réussi!"
 else
-    echo "⚠️  API pas encore accessible, vérifiez les logs"
+    echo "x  API pas encore accessible, vérifiez les logs"
 fi
 
 echo "=== État final ==="

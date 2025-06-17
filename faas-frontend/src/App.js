@@ -28,7 +28,7 @@ export default function App() {
   const apiUrl = "http://134.214.202.225:8000"
   const fetchFunctions = async () => {
     try {
-      const res = await fetch(`${apiUrl}/fonctions`)
+      const res = await fetch(`${apiUrl}/fonctions/creer-et-deployer`, { method: 'POST', body: formData })
       const data = await res.json()
       
       // Si c'est un tableau de strings, récupérer les détails de chaque fonction
@@ -126,8 +126,9 @@ export default function App() {
     formData.append('nom', nom)
     formData.append('langage', langage)
     formData.append('version', version)
-    formData.append('code', code)
-    apiUrl
+    formData.append('fichier', code) // fichier => nom attendu par FastAPI
+
+  // apiUrl
     setLoading(true)
     try {
       // Utiliser l'API de création sur le master

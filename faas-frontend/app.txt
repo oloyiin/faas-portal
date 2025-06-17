@@ -24,8 +24,8 @@ export default function App() {
 
   // API pour lire les fonctions (votre backend actuel)
   // API pour créer les fonctions (API Node.js sur le master)
-  const apiUrl = process.env.REACT_APP_API_URL || '/api'
-
+  //const apiUrl = process.env.REACT_APP_API_URL || '/api'
+  const apiUrl = "http://134.214.202.225:8000"
   const fetchFunctions = async () => {
     try {
       const res = await fetch(`${apiUrl}/fonctions`)
@@ -127,11 +127,11 @@ export default function App() {
     formData.append('langage', langage)
     formData.append('version', version)
     formData.append('code', code)
-apiUrl
+    apiUrl
     setLoading(true)
     try {
       // Utiliser l'API de création sur le master
-      const res = await fetch(`${apiUrl}/api/fonctions`, {
+      const res = await fetch(`${apiUrl}/fonctions`, {
         method: 'POST',
         body: formData,
       })
