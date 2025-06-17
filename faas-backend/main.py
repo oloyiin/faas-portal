@@ -56,7 +56,16 @@ def verify_certificates():
     required = ["client.crt", "client.key", "cert.crt"]
     missing = [str(CERTS_DIR / c) for c in required if not (CERTS_DIR / c).exists()]
     if missing:
-        raise FileNotFoundError(f"Certificats manquants : {missing}")
+        command = "microk8s config view --raw | grep 'client-certificate-data:' | awk '{print $2}' | base64 -d > client.crt"
+        result = await execute_command(command, cwd=str(CERTS_DIR))
+        command = "microk8s config view --raw | grep 'client-key-data:' | awk '{print $2}' | base64 -d > client.key"
+        result = await execute_command(command, cwd=str(CERTS_DIR))
+        command = "microk8s config view --raw | grep 'certificate-authority-data:' | awk '{print $2}' | base64 -d > cert.crt"
+        result = await execute_command(command, cwd=str(CERTS_DIR))
+        missing = [str(CERTS_DIR / c) for c in required if not (CERTS_DIR / c).exists()]
+        if missing :
+            raise FileNotFoundError(f"Certificats manquants : {missing}")
+
 
 # ──────────────────────────────────────────────
 # AJOUT AUTOMATIQUE AU FICHIER /etc/hosts
