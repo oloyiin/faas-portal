@@ -77,7 +77,6 @@ curl http://hello.default.134.214.202.225.sslip.io
 
 # Partie interface web 
 ## FaaS Portal
-# FaaS Portal
 
 Plateforme web complète pour gérer des fonctions serverless (FaaS) déployées sur un cluster Kubernetes avec Knative.
 
