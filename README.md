@@ -77,93 +77,190 @@ curl http://hello.default.134.214.202.225.sslip.io
 
 # Partie interface web 
 ## FaaS Portal
-### Présentation
-FaaS Portal est une plateforme web complète pour gérer des fonctions serverless (FaaS) déployées sur un cluster Kubernetes avec Knative.
-Elle permet de créer, lister, modifier, supprimer et surveiller des fonctions via une interface web intuitive et une API REST.
-### Architecture générale
-Le projet est composé de deux parties principales :
-1. Backend (API)
-Technologie : Python avec FastAPI
-Rôle :
+# FaaS Portal
 
-Communique avec l’API Kubernetes/Knative pour gérer les fonctions serverless.
-Expose une API REST sécurisée pour le frontend et d’autres clients.
-Gère la sécurité via certificats TLS pour accéder au cluster Kubernetes.
+Plateforme web complète pour gérer des fonctions serverless (FaaS) déployées sur un cluster Kubernetes avec Knative.
 
 
-Déploiement :
+## Table des matières
 
-Conteneurisé avec Docker.
-Déployé dans Kubernetes avec un Deployment, Service et RBAC (permissions).
-Utilise des variables d’environnement pour la configuration (ex: URL du serveur Kubernetes).
-
-
-2. Frontend (Interface utilisateur)
-Technologie : React avec Tailwind CSS
-Rôle :
-
-Interface utilisateur pour interagir avec les fonctions serverless.
-Permet d’uploader du code, configurer les fonctions, visualiser leur état et URL.
-Communique avec le backend via API REST.
+1. [Prérequis](#prérequis)  
+2. [Préparation des certificats Kubernetes](#préparation-des-certificats-kubernetes)  
+3. [Installation hors production (dev)](#installation-hors-production-dev)  
+   3.1. [Backend](#backend)  
+   3.2. [Frontend](#frontend)  
+4. [Installation et déploiement automatisé (prod)](#installation-et-déploiement-automatisé-prod)  
+5. [Architecture générale](#architecture-générale)  
+6. [Fonctionnement](#fonctionnement)  
+7. [Principaux fichiers et dossiers](#principaux-fichiers-et-dossiers)  
 
 
-Déploiement :
+---
 
-Buildé en application statique React.
-Servi via Nginx dans un conteneur Docker.
-Déployé dans Kubernetes avec un Deployment, Service et Ingress.
-Configuration Nginx adaptée pour SPA et proxy des appels API.
+## Prérequis
 
+- Git  
+- Python ≥ 3.9  
+- Node.js ≥ 14 + npm (ou yarn)  
+- microk8s (ou tout cluster Kubernetes local)  
+- Docker ou Podman  
+- `kubectl` configuré  
 
-Fonctionnement du projet
+---
 
-Création d’une fonction :
-L’utilisateur sélectionne un fichier source, renseigne le nom, langage et version, puis soumet via le frontend.
-Le frontend envoie le code au backend qui déploie la fonction sur Knative via l’API Kubernetes.
+## Préparation des certificats Kubernetes
 
+Pour que le backend puisse communiquer en TLS avec votre cluster, placez dans `faas-backend/certs/` :
 
+- `client.crt` : certificat client (PEM)  
+- `client.key` : clé privée du client (PEM)  
+- `cert.crt`   : certificat de l’autorité (CA) (PEM)  
 
-Liste et état des fonctions :
-Le frontend interroge le backend pour récupérer la liste des fonctions déployées, leurs URLs et états (prêtes ou non).
+### Extraction depuis `~/.kube/config` (déjà en base64)
 
+```bash
+# Récupérer et décoder le certificat client
+microk8s kubectl config view --raw \
+  -o jsonpath='{.users[0].user.client-certificate-data}' \
+  | base64 -d > faas-backend/certs/client.crt
 
+# Récupérer et décoder la clé privée client
+microk8s kubectl config view --raw \
+  -o jsonpath='{.users[0].user.client-key-data}' \
+  | base64 -d > faas-backend/certs/client.key
 
-Modification et suppression :
-Le backend expose des endpoints pour patcher ou supprimer une fonction, accessibles via le frontend.
+# Récupérer et décoder le certificat CA
+microk8s kubectl config view --raw \
+  -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' \
+  | base64 -d > faas-backend/certs/cert.crt
+```
 
+### Encodage d’un `.crt` ou `.key` existant en base64
 
+Si vous possédez déjà les fichiers `.crt`/`.key` et que vous souhaitez générer la chaîne base64 (pour un inclusion YAML par exemple) :
 
-Sécurité :
-Le backend utilise des certificats TLS pour communiquer avec Kubernetes.
-Le frontend communique uniquement avec le backend via API REST.
+```bash
+base64 -w 0 < client.crt   # -w 0 désactive le retour à la ligne
+base64 -w 0 < client.key
+base64 -w 0 < cert.crt
+```
 
+---
 
-Principaux fichiers et leur rôleFichier / DossierDescriptionbackend/main.pyCode principal backend FastAPI, routes API, gestion Kubernetes via certificats TLSbackend/backend-deploy.yamlManifest Kubernetes pour déployer backend (Deployment + Service)backend/backend-rbac.yamlPermissions Kubernetes (ServiceAccount, Role, RoleBinding) pour backendbackend/deployment.shScript bash pour builder, importer et déployer automatiquement le backendfrontend/src/App.jsComposant React principal, interface utilisateurfrontend/src/App.cssStyles Tailwind CSS et personnalisationsfrontend/faas-frontend-deployment.yamlManifest Kubernetes pour déployer frontend (Deployment + Service)frontend/redeploy-frontend.shScript bash pour builder, pousser et déployer automatiquement le frontendingress/faas-ingress.yamlIngress Kubernetes pour router le trafic vers frontend et backend selon les cheminsfrontend/nginx.confConfiguration Nginx pour servir React SPA et proxy API backend.env filesVariables d’environnement pour configurer URLs, certificats, etc.Déploiement
+## Installation hors production (dev)
 
-Backend :
-Utilise deployment.sh pour automatiser build, push et déploiement dans Kubernetes.
+### Backend
 
+```bash
+git clone https://…/faas-portal.git
+cd faas-portal/faas-backend
 
+# 1. Créer & activer un environnement virtuel
+python3 -m venv .venv
+source .venv/bin/activate
 
-Frontend :
-Utilise redeploy-frontend.sh pour automatiser build, push et déploiement.
+# 2. Installer les dépendances
+pip install -r requirements.txt
 
+# 3. Lancer FastAPI en mode dev
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
 
+- API disponible sur http://localhost:8000  
+- Swagger UI : http://localhost:8000/docs  
 
-Ingress :
-Applique le manifest Ingress pour exposer frontend et backend via un nom de domaine local.
+### Frontend
 
+```bash
+cd ../faas-frontend
 
-Utilisation
-Accéder à l’interface web via l’URL configurée dans l’Ingress (ex: http://faas.local).
-Créer, gérer et supprimer des fonctions serverless facilement.
-Visualiser l’état et l’URL des fonctions déployées.
-Tests
-Script Python dans backend pour tester les endpoints API.
-Tests unitaires React dans frontend (ex: App.test.js).
-Conclusion
-FaaS Portal est une solution complète pour gérer des fonctions serverless sur Kubernetes, avec une architecture moderne, sécurisée et automatisée.
-Les scripts de déploiement facilitent la mise à jour et la maintenance.
+# 1. Installer les dépendances
+npm install    # ou yarn install
 
+# 2. Configurer l’URL du backend
+echo "REACT_APP_BACKEND_URL=http://localhost:8000" > .env.local
+
+# 3. Lancer en mode dev
+npm start      # ou yarn start
+```
+
+- Interface disponible sur http://localhost:3000
+- Si variable .env configurer (host et port) interface disponible sur host:port
+
+---
+
+## Installation et déploiement automatisé (prod)
+
+### Backend
+
+```bash
+cd faas-backend
+./deployment.sh
+```
+
+Ce script :
+
+- Nettoie l’ancienne image et archives temporaires  
+- Build l’image Docker (`Dockerfile`)  
+- Importe l’image dans microk8s  
+- Applique `backend-deploy.yaml` et `backend-rbac.yaml`  
+- Redémarre le déploiement et vérifie l’état du pod  
+
+### Frontend
+
+```bash
+cd ../faas-frontend
+./redeploy-frontend.sh
+```
+
+Ce script :
+
+- Build l’image Docker (injection de `REACT_APP_BACKEND_URL`)  
+- Pousse l’image dans le registre local  
+- Applique `frontend-deployment.yaml`   
+- Redémarre le déploiement et attend sa disponibilité  
+
+### Ingress
+
+```bash
+kubectl apply -f faas-frontend/ingress.yaml
+```
+
+Expose la SPA et l’API sous un même domaine/local.
+
+---
+
+## Architecture générale
+
+- Backend : FastAPI + Kubernetes/Knative, conteneurisé, RBAC  
+- Frontend : React + Tailwind CSS, servi par Nginx  
+- Ingress Nginx pour router trafic SPA ↔ API  
+
+---
+
+## Fonctionnement
+
+1. Création de fonction : upload de code + métadonnées → Knative Service  
+2. Liste & états : frontend interroge l’API pour URL & statut  
+3. Modif. & suppression : endpoints REST exposés  
+4. Sécurité : TLS entre backend & cluster via `certs/`  
+
+---
+
+## Principaux fichiers et dossiers
+
+- faas-backend/  
+  - `main.py` : code FastAPI & logiques Kubernetes  
+  - `backend-deploy.yaml`, `backend-rbac.yaml` : manifests  
+  - `deployment.sh` : script build & déploiement  
+  - `certs/` : certificats TLS  
+- faas-frontend/  
+  - `src/` : code React + tests  
+  - `frontend-deployment.yaml` : manifests  
+  - `ingress.yaml` : Ingress pour SPA & API  
+  - `nginx.conf` : config Nginx SPA + proxy  
+  - `redeploy-frontend.sh` : script build & déploiement  
+- `func-linux-amd64` : binaire CLI (optionnel)  
+- `installation-kube-knative.sh` : script d’installation Knative  
 
 
