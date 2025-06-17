@@ -61,13 +61,14 @@ def verify_certificates():
 # ──────────────────────────────────────────────
 # AJOUT AUTOMATIQUE AU FICHIER /etc/hosts
 # ──────────────────────────────────────────────
+"""
 
 def add_to_etc_hosts(service_name: str, ip_address: str = "127.0.0.1"):
-    """
-    Ajoute une ligne à /etc/hosts pour rendre la fonction accessible via <nom>.example.com
-    """
-    hosts_path = "/etc/hosts"
-    entry = f"{ip_address} {service_name}.example.com\n"
+
+    ##Ajoute une ligne à /etc/hosts pour rendre la fonction accessible via <nom>.example.com
+    
+    #hosts_path = "/etc/hosts"
+    #entry = f"{ip_address} {service_name}.example.com"
     try:
         # Vérifie si l'entrée existe déjà
         with open(hosts_path, 'r') as f:
@@ -80,9 +81,11 @@ def add_to_etc_hosts(service_name: str, ip_address: str = "127.0.0.1"):
             f.write(entry)
         logger.info(f"Ajouté à /etc/hosts : {entry.strip()}")
     except PermissionError:
-        logger.error("❌ Permission refusée pour modifier /etc/hosts (lancer avec sudo)")
+        logger.error("X Permission refusée pour modifier /etc/hosts (lancer avec sudo)")
     except Exception as e:
         logger.error(f"Erreur écriture /etc/hosts : {e}")
+
+        """ 
 
 # ──────────────────────────────────────────────
 # FASTAPI INITIALISATION
@@ -245,7 +248,7 @@ async def creer_fonction(nom: str = Form(...), langage: str = Form(...)):
         result = await execute_command(command)
         if not result["success"]:
             raise HTTPException(status_code=500, detail=result["stderr"])
-        add_to_etc_hosts(nom)
+        #add_to_etc_hosts(nom)
         return {"message": f"Fonction '{nom}' créée", "stdout": result["stdout"]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
