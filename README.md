@@ -72,9 +72,9 @@ Pour tester la creation d'une fonction basique avec KNATIVE
 
 Modifier le /etc/hosts
 
-      echo "134.214.202.225 hello.default.134.214.202.225.sslip.io" | sudo tee -a /etc/hosts > /dev/null
+      echo "134.214.202.235 hello.default.134.214.202.235.sslip.io" | sudo tee -a /etc/hosts > /dev/null
       
-      curl http://hello.default.134.214.202.225.sslip.io
+      curl http://hello.default.134.214.202.235.sslip.io
 
 
 # Partie interface web 
