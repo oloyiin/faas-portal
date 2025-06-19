@@ -247,6 +247,7 @@ Expose la SPA et l’API sous un même domaine/local.
 4. Sécurité : TLS entre backend & cluster via `certs/`  
 
 ---
+tqbeycpg2cwefv5
 
 ## Principaux fichiers et dossiers
 
