@@ -5,9 +5,9 @@ VERDET Tristan - COHELEACH Damien - MALIKI Ilhême - GRAUL Alexis
 # Prérequis & Installation pour MICROK8S fonctionnel + FaaS (Knative)
 
 ## Accès à distance (optionnel)
-sudo apt update
-sudo apt install openssh-server (pour accès ssh)
-passwd (définir password)
+      sudo apt update
+      sudo apt install openssh-server (pour accès ssh)
+      passwd (définir password)
 
 ## Installation de snap 
 sudo apt install snap snapd
