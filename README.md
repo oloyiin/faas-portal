@@ -63,7 +63,7 @@ A partir d'ici, pour tester l'installation de Knative :
 ##Regler les problemes de droits avec knative###
             sudo chown -R $(id -u):$(id -g) /mnt/my-microk8s/common/run
             source ~/.bashrc
-            Pour tester la creation d'une fonction basique avec KNATIVE : 
+Pour tester la creation d'une fonction basique avec KNATIVE : 
             cd ~
             microk8s kn-func create hello -l node
             cd hello
