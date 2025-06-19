@@ -325,32 +325,52 @@ async def creer_fonction(nom: str = Form(...), langage: str = Form(...)):
         logger.error(f"erreur lors de la creation ")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+    """
+    Déploie une fonction en copiant un fichier source puis en lançant `kn-func deploy`.
+    """
+
 @app.post("/fonctions/{nom}/deployer")
 async def deployer_fonction(nom: str, fichier: UploadFile = File(...),
                             image_registry: str = Form("localhost:32000"),
                             builder: str = Form("s2i")):
-    """
-    Déploie une fonction en copiant un fichier source puis en lançant `kn-func deploy`.
-    """
     temp_dir = tempfile.mkdtemp()
     try:
         function_dir = Path(nom)
         if not function_dir.exists():
             raise HTTPException(status_code=404, detail="Fonction inexistante")
+
         temp_file_path = Path(temp_dir) / fichier.filename
-        await save_uploaded_file(fichier, temp_file_path)
+
+        if not await save_uploaded_file(fichier, temp_file_path):
+            raise HTTPException(status_code=500, detail="Erreur lors de la sauvegarde du fichier")
+
         shutil.copy2(temp_file_path, function_dir / fichier.filename)
-        print("Bien copié")
-        command = ["microk8s", "kn-func", "deploy",
-                   "--image", f"{image_registry}/{nom}:latest",
-                   "--builder", builder]
+        logger.info("Fichier copié avec succès")
+
+        command = [
+            "microk8s", "kn-func", "deploy",
+            "--image", f"{image_registry}/{nom}:latest",
+            "--builder", builder
+        ]
         result = await execute_command(command, cwd=str(function_dir))
+
         if not result["success"]:
-            logger.error(f"Erreur loors du deploiement ")
-            raise HTTPException(status_code=500, detail=result["stderr"]+f"déploiement à échouer")
+            raise HTTPException(status_code=500, detail="Déploiement échoué : " + result["stderr"])
+
+        logger.info(f"Déploiement réussi de {nom}")
         return {"message": f"Fonction '{nom}' déployée", "stdout": result["stdout"]}
+
+    except Exception as e:
+        logger.error(f"Erreur dans deployer_fonction : {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
     finally:
-        shutil.rmtree(temp_dir, ignore_errors=True)
+        try:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+        except Exception as e:
+            logger.warning(f"Erreur nettoyage dossier temporaire : {e}")
+
 
 @app.post("/fonctions/creer-et-deployer")
 async def creer_et_deployer(nom: str = Form(...), langage: str = Form(...),
