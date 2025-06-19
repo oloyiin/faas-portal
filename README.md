@@ -46,7 +46,7 @@ VERDET Tristan - COHELEACH Damien - MALIKI Ilhême - GRAUL Alexis
 ## Installation de Knative
       microk8s enable community
       microk8s enable knative #Installation de Knative
-      microk8s enable metallb:134.214.202.225-134.214.202.225 #Configuration de metallb (loadBalancer)
+      microk8s enable metallb:134.214.202.235-134.214.202.235 #Configuration de metallb (loadBalancer)
       microk8s kubectl patch configmap -n knative-serving config-domain -p '{"data": {"134.214.202.225.sslip.io": ""}}' #Configuration de l'adresse d'écoute de Knative
 
 ## Installation d'un utilitaire de container (ici podman)
