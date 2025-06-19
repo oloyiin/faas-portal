@@ -26,6 +26,8 @@ VERDET Tristan - COHELEACH Damien - MALIKI Ilhême - GRAUL Alexis
       sudo usermod -a -G microk8s ubuntu
       sudo chown -R ubuntu ~/.kube
       newgrp microk8s
+      export PATH=$PATH:/snap/bin
+      source ~/.bashrc 
       mkdir -p ~/.kube
       microk8s config > ~/.kube/config
       chmod 600 ~/.kube/config
