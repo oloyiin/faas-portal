@@ -60,16 +60,18 @@ VERDET Tristan - COHELEACH Damien - MALIKI Ilhême - GRAUL Alexis
 A partir d'ici, pour tester l'installation de Knative :
       microk8s kn-func version 
 
-##Regler les problemes de droits avec knative###
-            sudo chown -R $(id -u):$(id -g) /mnt/my-microk8s/common/run
-            source ~/.bashrc
-Pour tester la creation d'une fonction basique avec KNATIVE : 
-            cd ~
-            microk8s kn-func create hello -l node
-            cd hello
-            microk8s kn-func deploy --image localhost:32000/hello:latest --build --builder s2i
+## Regler les problemes de droits avec knative
+      sudo chown -R $(id -u):$(id -g) /mnt/my-microk8s/common/run
+      source ~/.bashrc
+Pour tester la creation d'une fonction basique avec KNATIVE
+
+      cd ~
+      microk8s kn-func create hello -l node
+      cd hello
+      microk8s kn-func deploy --image localhost:32000/hello:latest --build --builder s2i
 
 Modifier le /etc/hosts
+
       echo "134.214.202.225 hello.default.134.214.202.225.sslip.io" | sudo tee -a /etc/hosts > /dev/null
       
       curl http://hello.default.134.214.202.225.sslip.io
