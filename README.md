@@ -10,31 +10,31 @@ VERDET Tristan - COHELEACH Damien - MALIKI Ilhême - GRAUL Alexis
       passwd (définir password)
 
 ## Installation de snap 
-sudo apt install snap snapd
-sudo snap install core
+            sudo apt install snap snapd
+            sudo snap install core
 
 ## Montage du disque de la machine hôte et définition du dossier de microk8s
-sudo mount /dev/sda /mnt
-mkdir /mnt/my-microk8s/
-cd /var/snap
-sudo ln -s /mnt/my-microk8s microk8s
+            sudo mount /dev/sda /mnt
+            mkdir /mnt/my-microk8s/
+            cd /var/snap
+            sudo ln -s /mnt/my-microk8s microk8s
 
 ## Installation de microk8s
-sudo snap install microk8s --classic
+            sudo snap install microk8s --classic
 
 ## Configuration initiale de microk8s
-sudo usermod -a -G microk8s ubuntu
-sudo chown -R ubuntu ~/.kube
-newgrp microk8s
-mkdir -p ~/.kube
-microk8s config > ~/.kube/config
-chmod 600 ~/.kube/config
-microk8s start
+            sudo usermod -a -G microk8s ubuntu
+            sudo chown -R ubuntu ~/.kube
+            newgrp microk8s
+            mkdir -p ~/.kube
+            microk8s config > ~/.kube/config
+            chmod 600 ~/.kube/config
+            microk8s start
 
 ## Montage de l'emplacement du registry et lien
-mkdir /mnt/my-microk8s/registry
-cd /var/lib
-sudo ln -s /mnt/my-microk8s/registry registry
+            mkdir /mnt/my-microk8s/registry
+            cd /var/lib
+            sudo ln -s /mnt/my-microk8s/registry registry
 
 mkdir /mnt/my-microk8s/tmp
 cd /var
