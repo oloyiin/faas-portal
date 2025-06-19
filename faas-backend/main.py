@@ -40,8 +40,8 @@ CERT = (str(CERTS_DIR / "client.crt"), str(CERTS_DIR / "client.key"))
 CACERT = str(CERTS_DIR / "cert.crt")
 
 # Adresse de l'API Kubernetes
-API_SERVER = os.getenv("API_SERVER", "https://134.214.202.225:16443")
-
+#API_SERVER = os.getenv("API_SERVER", "https://134.214.202.225:16443")
+API_SERVER = "https://134.214.202.235:16443"
 # Headers standards pour les appels REST
 HEADERS = {"Content-Type": "application/json"}
 
@@ -85,6 +85,7 @@ async def execute_shell_command(command: str, cwd: Optional[str] = None) -> dict
             "stderr": stderr.decode()
         }
     except Exception as e:
+        logger.error(f"Erreur de la fonction shell commande")
         return {"success": False, "stdout": "", "stderr": str(e)}
 
 
@@ -316,10 +317,12 @@ async def creer_fonction(nom: str = Form(...), langage: str = Form(...)):
         command = ["microk8s", "kn-func", "create", nom, "-l", langage]
         result = await execute_command(command)
         if not result["success"]:
-            raise HTTPException(status_code=500, detail=result["stderr"])
-        #add_to_etc_hosts(nom)
+            logger.error(f"erreur creation")
+            raise HTTPException(status_code=500, detail=f"Impossible de créer la fonction avec les parametre suivants {nom} {langage}")
+            #add_to_etc_hosts(nom)
         return {"message": f"Fonction '{nom}' créée", "stdout": result["stdout"]}
     except Exception as e:
+        logger.error(f"erreur lors de la creation ")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/fonctions/{nom}/deployer")
@@ -337,12 +340,14 @@ async def deployer_fonction(nom: str, fichier: UploadFile = File(...),
         temp_file_path = Path(temp_dir) / fichier.filename
         await save_uploaded_file(fichier, temp_file_path)
         shutil.copy2(temp_file_path, function_dir / fichier.filename)
+        print("Bien copié")
         command = ["microk8s", "kn-func", "deploy",
                    "--image", f"{image_registry}/{nom}:latest",
                    "--builder", builder]
         result = await execute_command(command, cwd=str(function_dir))
         if not result["success"]:
-            raise HTTPException(status_code=500, detail=result["stderr"])
+            logger.error(f"Erreur loors du deploiement ")
+            raise HTTPException(status_code=500, detail=result["stderr"]+f"déploiement à échouer")
         return {"message": f"Fonction '{nom}' déployée", "stdout": result["stdout"]}
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
