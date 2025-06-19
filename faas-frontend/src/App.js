@@ -4,7 +4,7 @@ import { Upload, Trash2, ExternalLink, RefreshCw } from 'lucide-react'
 
 const supportedLanguages = [
   'python',
-  'nodejs',
+  'node',
   'go',
   'rust',
   'springboot',
@@ -22,7 +22,7 @@ export default function App() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  const apiUrl = "http://134.214.202.225:8000"
+  const apiUrl = "http://134.214.202.235:8000"
 
   const fetchFunctions = async () => {
     setError('')
