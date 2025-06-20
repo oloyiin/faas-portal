@@ -7,7 +7,7 @@ VERDET Tristan - COHELEACH Damien - MALIKI Ilhême - GRAUL Alexis
 ## Accès à distance (optionnel)
       sudo apt update
       sudo apt install openssh-server (pour accès ssh)
-      passwd (définir password)
+      sudo passwd user (définir password)
 
 ## Installation de snap 
       sudo apt install snap snapd
