@@ -42,9 +42,9 @@ VERDET Tristan - COHELEACH Damien - MALIKI Ilhême - GRAUL Alexis
       microk8s start
       
 ## Installation du registry
-      sudo chown -R user /var/snap/microk8s
+      
       microk8s enable registry
-      sudo chown -R user /var/snap/microk8s
+      
 
       microk8s enable community
       microk8s enable knative #Installation de Knative
