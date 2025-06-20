@@ -5,8 +5,8 @@ VERDET Tristan - COHELEACH Damien - MALIKI Ilhême - GRAUL Alexis
 # Prérequis & Installation pour MICROK8S fonctionnel + FaaS (Knative)
 
       sudo apt install rootlesskit
-      sudo apt install curl 
-      sudo apt install podman
+      #sudo apt install curl 
+      #sudo apt install podman
 
 
 ## Déplacement des fichiers lourds
@@ -27,7 +27,7 @@ VERDET Tristan - COHELEACH Damien - MALIKI Ilhême - GRAUL Alexis
       ln -s mnt/microk8s/containers
       
 ## Installation de snap 
-      sudo apt install snap snapd
+      ##sudo apt install snap snapd
       sudo snap install core
 
 
