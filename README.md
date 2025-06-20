@@ -37,6 +37,7 @@ VERDET Tristan - COHELEACH Damien - MALIKI Ilhême - GRAUL Alexis
 ## Configuration initiale de microk8s
 
       sudo chown -R user /mnt/microk8s
+      mkdir ~/.kube
       microk8s config > ~/.kube/config
       microk8s start
       
