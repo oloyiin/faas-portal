@@ -1,0 +1,39 @@
+| Commande                   | Description                                               |
+| -------------------------- | --------------------------------------------------------- |
+| `microk8s status`          | Affiche l'état actuel de MicroK8s et les services activés |
+| `microk8s start`           | Démarre MicroK8s                                          |
+| `microk8s stop`            | Arrête MicroK8s                                           |
+| `microk8s inspect`         | Lance un diagnostic en cas de problème                    |
+| `microk8s reset`           | Réinitialise complètement le cluster                      |
+| `microk8s enable <addon>`  | Active un addon (ex : dns, ingress, metallb, etc.)        |
+| `microk8s disable <addon>` | Désactive un addon                                        |
+
+| Commande                                  | Description                                      |
+| ----------------------------------------- | ------------------------------------------------ |
+| `microk8s kubectl get pods -A`            | Liste tous les pods dans tous les namespaces     |
+| `microk8s kubectl get svc`                | Liste les services                               |
+| `microk8s kubectl get nodes`              | Affiche les nœuds du cluster                     |
+| `microk8s kubectl describe pod <nom>`     | Donne des détails sur un pod                     |
+| `microk8s kubectl logs <nom-du-pod>`      | Affiche les logs d'un pod                        |
+| `microk8s kubectl apply -f fichier.yaml`  | Applique une configuration Kubernetes            |
+| `microk8s kubectl delete -f fichier.yaml` | Supprime les ressources définies dans un fichier |
+| `microk8s kubectl exec -it <pod> -- bash` | Exécute un shell dans un pod (si bash est dispo) |
+
+alias kubectl='microk8s kubectl'
+
+| Commande                                                                      | Description                                                       |
+| ----------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `microk8s config`                                                             | Affiche le kubeconfig pour se connecter avec un `kubectl` externe |
+| `microk8s enable metallb`                                                     | Active MetalLB pour fournir des IPs externes                      |
+| `microk8s kubectl port-forward svc/<nom-service> <port-local>:<port-cluster>` | Redirige un port local vers un service                            |
+
+| Addon            | Utilité                             |
+| ---------------- | ----------------------------------- |
+| `dns`            | Résolution DNS dans le cluster      |
+| `dashboard`      | Interface web de Kubernetes         |
+| `ingress`        | Pour exposer des services via NGINX |
+| `metallb`        | Load balancer pour réseau local     |
+| `metrics-server` | Pour l'autoscaling et `kubectl top` |
+| `registry`       | Docker registry local               |
+| `helm`           | Gestionnaire de chartes Helm        |
+
