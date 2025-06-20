@@ -12,7 +12,7 @@ VERDET Tristan - COHELEACH Damien - MALIKI Ilhême - GRAUL Alexis
 ## Déplacement des fichiers lourds
       sudo su -
       systemctl start podman
-      sudo mount /dev/sda /mnt
+      mount /dev/sda /mnt
       rm -rf /mnt/microk8s/*
       cd /mnt/microk8s
       mkdir registry tmp containers
