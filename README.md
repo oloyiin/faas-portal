@@ -4,56 +4,52 @@ VERDET Tristan - COHELEACH Damien - MALIKI Ilhême - GRAUL Alexis
 
 # Prérequis & Installation pour MICROK8S fonctionnel + FaaS (Knative)
 
-## Accès à distance (optionnel)
-      sudo apt update
-      sudo apt install openssh-server (pour accès ssh)
-      sudo passwd user (définir password)
+sudo apt install rootlesskit
+sudo apt install curl 
+sudo apt install podman
 
+
+## Déplacement des fichiers lourds
+      sudo su -
+      systemctl start podman
+      sudo mount /dev/sda /mnt
+      rm -rf /mnt/microk8s/*
+      cd /mnt/microk8s
+      mkdir registry tmp containers
+      cd /var/snap
+      se déco du sudo su -
+      sudo ln -s /mnt/microk8s microk8s
+      cd /var/lib
+      sudo ln -s /mnt/microk8s/registry registry
+      sudo mv /var/tmp /var/tmp2
+      sudo ln -s /mnt/mirok8s/tmp
+      cd ~/.local/share
+      ln -s mnt/microk8s/containers
+      
 ## Installation de snap 
       sudo apt install snap snapd
       sudo snap install core
 
-## Montage du disque de la machine hôte et définition du dossier de microk8s
-      sudo mount /dev/sda /mnt
-      mkdir /mnt/my-microk8s/
-      cd /var/snap
-      sudo ln -s /mnt/my-microk8s microk8s
 
 ## Installation de microk8s
       sudo snap install microk8s --classic
 
 ## Configuration initiale de microk8s
-      sudo usermod -a -G microk8s ubuntu
-      sudo chown -R ubuntu ~/.kube
-      newgrp microk8s
-      export PATH=$PATH:/snap/bin
-      source ~/.bashrc 
-      mkdir -p ~/.kube
+
+      sudo chown -R user /mnt/microk8s
       microk8s config > ~/.kube/config
-      chmod 600 ~/.kube/config
       microk8s start
-
-## Montage de l'emplacement du registry et lien
-      mkdir /mnt/my-microk8s/registry
-      cd /var/lib
-      sudo ln -s /mnt/my-microk8s/registry registry
-
-      mkdir /mnt/my-microk8s/tmp
-      cd /var
-      sudo ln -s /mnt/my-microk8s/tmp tmp
-
+      
 ## Installation du registry
+      sudo chown -R user /var/snap/microk8s
       microk8s enable registry
+      sudo chown -R user /var/snap/microk8s
 
-## Installation de Knative
       microk8s enable community
       microk8s enable knative #Installation de Knative
       microk8s enable metallb:134.214.202.235-134.214.202.235 #Configuration de metallb (loadBalancer)
       microk8s kubectl patch configmap -n knative-serving config-domain -p '{"data": {"134.214.202.235.sslip.io": ""}}' #Configuration de l'adresse d'écoute de Knative
 
-## Installation d'un utilitaire de container (ici podman)
-      sudo apt install podman
-      sudo apt install curl
 
 ## Ajout au PATH les plugins de Knative
       echo 'export PATH=$PATH:/var/snap/microk8s/common/plugins' >> ~/.bashrc
@@ -61,12 +57,7 @@ VERDET Tristan - COHELEACH Damien - MALIKI Ilhême - GRAUL Alexis
 
 A partir d'ici, pour tester l'installation de Knative :
       microk8s kn-func version 
-
-## Regler les problemes de droits avec knative
-      sudo chown -R $(id -u):$(id -g) /mnt/my-microk8s/common/run
-      source ~/.bashrc
-Pour tester la creation d'une fonction basique avec KNATIVE
-
+      
       cd ~
       microk8s kn-func create hello -l node
       cd hello
