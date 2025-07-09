@@ -1,75 +1,22 @@
 Projet Etudiants TC - SIR - Plateforme FaaS
 VERDET Tristan - COHELEACH Damien - MALIKI Ilhême - GRAUL Alexis
 
+# Démarrage du noyau avec l'option de groupes spécifiques
+     Utiliser l'image : [2025-microk8s](https://github.com/sfrenot/iso/tree/main/2025-microk8s). Elle est accessible sur demande   
+     L'image brute se trouve [ici](wget http://tc-net.insa-lyon.fr/iso/2025-microk8s.iso)   
+     Démarrer le réseau : ./startnet.sh
 
-# Prérequis & Installation pour MICROK8S fonctionnel + FaaS (Knative)
+## Installer microk8s 
+      ./startmicrok8s.sh # Lire le shell pour comprendre ce que le programme réalise
 
-      sudo apt install rootlesskit
-      #sudo apt install curl 
-      #sudo apt install podman
-
-
-## Déplacement des fichiers lourds
-      sudo su -
-      systemctl start podman
-      mount /dev/sda /mnt
-      rm -rf /mnt/microk8s/*
-      cd /mnt/microk8s
-      mkdir registry tmp containers
-      cd /var/snap
-      se déco du sudo su -
-      sudo ln -s /mnt/microk8s microk8s
-      cd /var/lib
-      sudo ln -s /mnt/microk8s/registry registry
-      sudo mv /var/tmp /var/tmp2
-      sudo ln -s /mnt/mirok8s/tmp
-      cd ~/.local/share
-      ln -s mnt/microk8s/containers
-      
-## Installation de snap 
-      ##sudo apt install snap snapd
-      sudo snap install core
-
-
-## Installation de microk8s
-      sudo snap install microk8s --classic
-
-## Configuration initiale de microk8s
-
-      sudo chown -R user /mnt/microk8s
-      mkdir ~/.kube
-      microk8s config > ~/.kube/config
-      microk8s start
-      
-## Installation du registry
-      
-      microk8s enable registry
-      
-
-      microk8s enable community
-      ####MESSAGE D'ERREUR DE DROIT  --> NORMAL CAR Droits pour user
-      microk8s enable knative #Installation de Knative
-      microk8s enable metallb:134.214.202.235-134.214.202.235 #Configuration de metallb (loadBalancer)
-      microk8s kubectl patch configmap -n knative-serving config-domain -p '{"data": {"134.214.202.235.sslip.io": ""}}' #Configuration de l'adresse d'écoute de Knative
-
-
-## Ajout au PATH les plugins de Knative
-      echo 'export PATH=$PATH:/var/snap/microk8s/common/plugins' >> ~/.bashrc
-      source ~/.bashrc
-
-A partir d'ici, pour tester l'installation de Knative :
+## Tester l'installation de knative
       microk8s kn-func version 
-      
-      cd ~
-      microk8s kn-func create hello -l node
-      cd hello
-      microk8s kn-func deploy --image localhost:32000/hello:latest --build --builder s2i
+      Tester l'installation avec le script
+      ./startfaas.sh
 
-Modifier le /etc/hosts
-
-      echo "134.214.202.235 hello.default.134.214.202.235.sslip.io" | sudo tee -a /etc/hosts > /dev/null
+      Tester l'appel de fonction avec le retour du script d'installation
       
-      curl http://hello.default.134.214.202.235.sslip.io
+      curl http://hello.default.$ipaddr.sslip.io
 
 
 # Partie interface web 
